@@ -6,10 +6,11 @@ namespace Player
     [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerEntity : MonoBehaviour
     {
+        public Animator Animator;
         [Header("HorizontalMovement")]
         [SerializeField] private float _horizontalSpeed;
         [SerializeField] private bool _isFaceRight;
-
+ 
         [Header("Jump")] 
         [SerializeField] private float _jumpForce;
         [SerializeField] private Transform _groundCheck;
@@ -23,8 +24,21 @@ namespace Player
             _rigidbody = GetComponent<Rigidbody2D>();
         }
 
+        private void Update()
+        {
+            if (IsGrounded())
+            {
+                Animator.SetBool("IsJumping",false);
+            }
+            else
+            {
+                Animator.SetBool("IsJumping",true);
+            }
+        }
+
         public void MoveHorizontally(float direction)
         {
+            Animator.SetFloat("Speed", Mathf.Abs(_horizontalSpeed * direction));
             CheckIfChangeDirection(direction);
             Vector2 velocity = _rigidbody.velocity;
             velocity.x = direction * _horizontalSpeed;
@@ -32,14 +46,22 @@ namespace Player
         }
 
         public void Jump()
-        {
-            if (isGrounded())
+        {   
+            if (IsGrounded())
             {
                 _rigidbody.AddForce(Vector2.up * _jumpForce );
             }
         }
 
-        private bool isGrounded()
+        public void LongJump()
+        {
+            if (_rigidbody.velocity.y > 0)
+            {
+                _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _rigidbody.velocity.y * 0.5f);
+            }
+        }
+
+        private bool IsGrounded()
         {
             return Physics2D.OverlapCircle(_groundCheck.position, 0.2f, _groundLayer);
         }

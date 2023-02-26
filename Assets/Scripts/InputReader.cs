@@ -14,6 +14,9 @@ public class InputReader:MonoBehaviour
         {
             _playerEntity.Jump();
         }
+        if (Input.GetButtonUp("Jump")){
+            _playerEntity.LongJump();
+        }
     }
 
     private void FixedUpdate()
