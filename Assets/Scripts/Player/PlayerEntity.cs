@@ -1,3 +1,4 @@
+using Player.PlayerAnimation;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -6,7 +7,8 @@ namespace Player
     [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerEntity : MonoBehaviour
     {
-        public Animator Animator;
+        [SerializeField] private AnimationController _animator;
+        
         [Header("HorizontalMovement")]
         [SerializeField] private float _horizontalSpeed;
         [SerializeField] private bool _isFaceRight;
@@ -17,6 +19,8 @@ namespace Player
         [SerializeField] private LayerMask  _groundLayer;
         
         private Rigidbody2D _rigidbody;
+        private Vector2 _movement;
+
         private bool _isJumping;
         
         private void Start()
@@ -26,19 +30,19 @@ namespace Player
 
         private void Update()
         {
-            if (IsGrounded())
-            {
-                Animator.SetBool("IsJumping",false);
-            }
-            else
-            {
-                Animator.SetBool("IsJumping",true);
-            }
+            UpdateAnimations();
+        }
+
+        private void UpdateAnimations()
+        {
+            _animator.PlayAnimation(AnimationTypeEnum.Idle, true);
+            _animator.PlayAnimation(AnimationTypeEnum.Run, _movement.magnitude >0);
+            _animator.PlayAnimation(AnimationTypeEnum.Jump, !IsGrounded());
         }
 
         public void MoveHorizontally(float direction)
         {
-            Animator.SetFloat("Speed", Mathf.Abs(_horizontalSpeed * direction));
+            _movement.x = direction;
             CheckIfChangeDirection(direction);
             Vector2 velocity = _rigidbody.velocity;
             velocity.x = direction * _horizontalSpeed;
@@ -80,5 +84,7 @@ namespace Player
             transform.Rotate(0,180,0);
             _isFaceRight = !_isFaceRight;
         }
+
+        
     }
 }
