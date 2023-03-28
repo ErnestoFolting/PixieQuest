@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Player;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Player
+namespace InputReader
 {
     public class GameUIInputView: MonoBehaviour, IEntityInputSource
     {

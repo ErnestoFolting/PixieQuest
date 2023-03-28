@@ -1,4 +1,6 @@
-using Player.PlayerAnimation;
+using Core.Animation;
+using Core.Movement.Controller;
+using Core.Movement.Data;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -8,24 +10,21 @@ namespace Player
     public class PlayerEntity : MonoBehaviour
     {
         [SerializeField] private AnimationController _animator;
-        
-        [Header("HorizontalMovement")]
-        [SerializeField] private float _horizontalSpeed;
-        [SerializeField] private bool _isFaceRight;
- 
-        [Header("Jump")] 
-        [SerializeField] private float _jumpForce;
-        [SerializeField] private Transform _groundCheck;
-        [SerializeField] private LayerMask  _groundLayer;
-        
-        private Rigidbody2D _rigidbody;
-        private Vector2 _movement;
 
-        private bool _isJumping;
+        [SerializeField]
+        private HorizontalMovementData _horizontalMovementData;
+ 
+        [SerializeField]
+        private JumperData _jumperData;
         
+
+        private HorizontalMover _horizontalMover;
+        private Jumper _jumper;
         private void Start()
         {
-            _rigidbody = GetComponent<Rigidbody2D>();
+            Rigidbody2D rigidBody = GetComponent<Rigidbody2D>();
+            _jumper = new Jumper(rigidBody, _jumperData);
+            _horizontalMover = new HorizontalMover(rigidBody, _horizontalMovementData);
         }
 
         private void Update()
@@ -36,55 +35,14 @@ namespace Player
         private void UpdateAnimations()
         {
             _animator.PlayAnimation(AnimationTypeEnum.Idle, true);
-            _animator.PlayAnimation(AnimationTypeEnum.Run, _movement.magnitude >0);
-            _animator.PlayAnimation(AnimationTypeEnum.Jump, !IsGrounded());
+            _animator.PlayAnimation(AnimationTypeEnum.Run, _horizontalMover.IsMoving);
+            _animator.PlayAnimation(AnimationTypeEnum.Jump, !_jumper.IsGrounded());
         }
 
-        public void MoveHorizontally(float direction)
-        {
-            _movement.x = direction;
-            CheckIfChangeDirection(direction);
-            Vector2 velocity = _rigidbody.velocity;
-            velocity.x = direction * _horizontalSpeed;
-            _rigidbody.velocity = velocity;
-        }
-
-        public void Jump()
-        {   
-            if (IsGrounded())
-            {
-                _rigidbody.AddForce(Vector2.up * _jumpForce );
-            }
-        }
-
-        public void LongJump()
-        {
-            if (_rigidbody.velocity.y > 0)
-            {
-                _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _rigidbody.velocity.y * 0.5f);
-            }
-        }
-
-        private bool IsGrounded()
-        {
-            return Physics2D.OverlapCircle(_groundCheck.position, 0.2f, _groundLayer);
-        }
+        public void MoveHorizontally(float direction) => _horizontalMover.MoveHorizontally(direction);
         
-        private void CheckIfChangeDirection(float direction)
-        {
-            if (_isFaceRight && direction < 0 || 
-                !_isFaceRight && direction > 0)
-            {
-                FlipCharacter();
-            }
-        }
-
-        private void FlipCharacter()
-        {
-            transform.Rotate(0,180,0);
-            _isFaceRight = !_isFaceRight;
-        }
-
+        public void Jump() => _jumper.Jump();
         
+        public void LongJump() => _jumper.LongJump();
     }
 }
